@@ -14,7 +14,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g "openwork-server@${OPENWORK_SERVER_VERSION}"
-
+RUN chmod +x /usr/local/lib/node_modules/openwork-server/dist/bin/openwork-server
 RUN set -eux; \
   arch="$(dpkg --print-architecture)"; \
   case "$arch" in \
