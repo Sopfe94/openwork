@@ -51,11 +51,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: ./.github/actions/setup-tests
-      - name: Prepare a virtual display, local Den dependencies and the review app
+      - uses: ./.github/actions/setup-browser
+        with:
+          oauth-handoff: "true"
+      - name: Build local Den dependencies and the review app
+        shell: bash
         run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y xvfb x11-utils libgtk-3-0 libnss3 libasound2t64 libgbm1
           pnpm --filter @openwork/types build
           pnpm --filter @openwork-ee/den-db build
           pnpm --filter @openwork/email build
@@ -111,29 +112,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: ./.github/actions/setup-tests
-      - name: Prepare a virtual display and verified Linux browser
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y xvfb x11-utils libgtk-3-0 libnss3 libasound2t64 libgbm1 ca-certificates curl gnupg
-          chrome="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          if [ -z "$chrome" ]; then
-            curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
-              https://dl.google.com/linux/linux_signing_key.pub -o "$RUNNER_TEMP/google-linux-signing-key.pub"
-            gpg --batch --yes --dearmor --output "$RUNNER_TEMP/google-chrome.gpg" "$RUNNER_TEMP/google-linux-signing-key.pub"
-            sudo install -m 0644 "$RUNNER_TEMP/google-chrome.gpg" /usr/share/keyrings/openwork-google-chrome.gpg
-            printf '%s\n' 'deb [arch=amd64 signed-by=/usr/share/keyrings/openwork-google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main' \
-              | sudo tee /etc/apt/sources.list.d/openwork-google-chrome.list >/dev/null
-            sudo apt-get update -qq
-            sudo apt-get install -y google-chrome-stable
-          fi
-          chrome="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          if [ -z "$chrome" ]; then
-            printf '%s\n' '::error::Live appWeb proof requires Google Chrome or Chromium on PATH. Repair the runner browser installation and rerun this job.' >&2
-            exit 1
-          fi
-          "$chrome" --version
-          printf 'CHROME_BIN=%s\n' "$chrome" >> "$GITHUB_ENV"
+      - uses: ./.github/actions/setup-browser
       - name: Build local appWeb dependencies without live credentials
         run: pnpm --filter @openwork/types build
       - name: Run the whole selected live spec on local v1 appWeb
