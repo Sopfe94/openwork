@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim
 
-ARG OPENWORK_SERVER_VERSION=0.18.4
+ARG OPENWORK_SERVER_VERSION=latest
 ARG OPENCODE_VERSION=1.17.11
 ARG OPENCODE_DOWNLOAD_URL=
 
@@ -53,4 +53,4 @@ VOLUME ["/workspace", "/data"]
 # Defaults:
 # - OpenWork server is published intentionally via --host 0.0.0.0
 # - OpenCode is managed by openwork-server and stays internal
-CMD ["/bin/sh", "-lc", "plugin_dir=\"$(npm root -g)/openwork-server/dist/opencode-plugins\"; test -d \"$plugin_dir\"; export OPENWORK_MANAGE_OPENCODE=1 OPENWORK_OPENCODE_BIN=/usr/local/bin/opencode OPENWORK_EXTENSIONS_PLUGIN_DIR=\"$plugin_dir\"; exec openwork-server --workspace \"${OPENWORK_WORKSPACE:-/workspace}\" --host 0.0.0.0 --port \"${OPENWORK_PORT:-8787}\" --cors \"${OPENWORK_CORS_ORIGINS:-*}\" --approval \"${OPENWORK_APPROVAL_MODE:-manual}\""]
+CMD ["openwork-server", "web", "--port", "8787", "--host", "0.0.0.0"]
